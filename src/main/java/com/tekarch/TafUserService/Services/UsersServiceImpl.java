@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -28,15 +29,9 @@ public class UsersServiceImpl implements UserService {
     @Value("${tafdatastorems.url}")
     private String dataStoreMsUrl;
 
-    /*@Override -- working one
-    public UsersDTO getUserById(Long user_id) {
-        logger.info("Retrieving specific user details by user ID");
-        String url = userRepoUrl + "/users/"+ user_id;
-        return restTemplate.getForObject(url, UsersDTO.class);
-    }*/
-
     @Override
     public UsersDTO getUserById(Long user_id) {
+        logger.info("Get user by ID:: ");
         String url = dataStoreMsUrl + "/users/" + user_id;
         ResponseEntity<UsersDTO> response = restTemplate.getForEntity(url, UsersDTO.class);
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
@@ -47,6 +42,7 @@ public class UsersServiceImpl implements UserService {
     }
 
     public List<UsersDTO> getAllUsers() {
+        logger.info("Get all users ");
         String url = dataStoreMsUrl + "/users";
         ResponseEntity<UsersDTO[]> response = restTemplate.getForEntity(url, UsersDTO[].class);
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
@@ -58,6 +54,7 @@ public class UsersServiceImpl implements UserService {
 
     // Create a new user
     public UsersDTO addUser(UsersDTO userDTO) {
+        logger.info("Create user::");
         String url = dataStoreMsUrl + "/users";
         ResponseEntity<UsersDTO> response = restTemplate.postForEntity(url, userDTO, UsersDTO.class);
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
@@ -69,53 +66,31 @@ public class UsersServiceImpl implements UserService {
 
     // Update an existing user by ID
     public UsersDTO updateUserById(Long user_id, UsersDTO userDTO) {
+        logger.info("Update user by ID:: ");
         String url = dataStoreMsUrl + "/users/" + user_id;
         restTemplate.put(url, userDTO);
         return getUserById(user_id);
     }
 
-    // Delete a user by ID
-    public void deleteUser(Long user_id) {
+    public ResponseEntity<String> deleteUser(Long user_id) {
+        logger.info("Delete user by ID:: " + user_id);
         String url = dataStoreMsUrl + "/users/" + user_id;
-        restTemplate.delete(url);
-    }
-}
 
-/*@Override
-public UsersDTO addUser(UsersDTO userDTO) {
-    String url = userRepoUrl + "/users";
-    UsersDTO newUser = restTemplate.postForObject(url,userDTO,UsersDTO.class);
-    return newUser;
-}
-    @Override
-    public UsersDTO updateUserById(Long user_id, UsersDTO userDTO) {
-        String url = userRepoUrl + "/users/"+ user_id;
-        restTemplate.put(url, userDTO);
-        return getUserById(user_id);
-    }
+        try {
+            restTemplate.delete(url);
+            return ResponseEntity.ok("User with ID " + user_id + " was successfully deleted.");
+        } catch (HttpClientErrorException e) {
+            logger.error("Error deleting user with ID " + user_id, e);
+            return ResponseEntity.status(e.getStatusCode())
+                    .body("Failed to delete user with ID " + user_id + ": " + e.getMessage());
+        }
 
-    @Override
-    public List<UsersDTO> getAllUsers() {
-        String url = userRepoUrl + "/users";
-        UsersDTO[] users = restTemplate.getForObject(url, UsersDTO[].class);
-        return users != null ? Arrays.asList(users) : Collections.emptyList();
-    }
-
-
-  *//*  public List<UsersDTO> getAllUsers() {
-        String url = DATASERVICE_URL + "/users";
-        User[] users = restTemplate.getForObject(url, User[].class);
-        return users != null ? Arrays.asList(users) : Collections.emptyList();
-    }*//*
-
-   *//* @Override
-    public List<UsersDTO> getAllUsers() {
-        restTemplate.get
-        return List.of();
-    }*//*
-
-    @Override
+   /* // Delete a user by ID
     public void deleteUser(Long user_id) {
-        String url = userRepoUrl + "/users/" + user_id;
+        logger.info("Delete user by ID:: ");
+        String url = dataStoreMsUrl + "/users/" + user_id;
         restTemplate.delete(url);
     }*/
+    }
+}
+

@@ -11,11 +11,5 @@ public class RestTemplateConfig {
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
-
-    /*@Bean
-    public String myStringBean() {
-        return "YourStringValue";
-    }*/
-
 }
 
